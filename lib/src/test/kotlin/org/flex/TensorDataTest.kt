@@ -5,9 +5,9 @@
 package org.flex
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 /**
@@ -135,7 +135,7 @@ class TensorDataTest {
         )
 
         assertEquals(tensor1, tensor2)
-        assertFalse(tensor1 == tensor3)
+        assertNotEquals(tensor1, tensor3)
     }
 
     @Test
@@ -148,6 +148,17 @@ class TensorDataTest {
 
         assertEquals(listOf<Byte>(1, 2, 3), copied.content)
         assertEquals(listOf(1, 3), copied.shape)
+    }
+
+    @Test
+    fun `List Byte toByteArray extension should convert correctly`() {
+        val byteList = listOf<Byte>(1, 2, 3, 4, 5)
+        val byteArray = byteList.toByteArray()
+
+        assertEquals(5, byteArray.size)
+        for (i in byteList.indices) {
+            assertEquals(byteList[i], byteArray[i])
+        }
     }
 }
 

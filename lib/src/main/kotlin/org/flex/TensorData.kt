@@ -69,8 +69,6 @@ data class TensorData(
  * Convenience extension to convert a List<Byte> to ByteArray.
  */
 fun List<Byte>.toByteArray(): ByteArray {
-    val result = ByteArray(size)
-    forEachIndexed { index, byte -> result[index] = byte }
-    return result
+    return this.toTypedArray().toByteArray()
 }
 
