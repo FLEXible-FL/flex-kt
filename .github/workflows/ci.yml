@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java-version: [ '17', '21' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run Gradle linting
+        run: ./gradlew lint --no-daemon
+        continue-on-error: true
+
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build library
+        run: ./gradlew build --no-daemon
+

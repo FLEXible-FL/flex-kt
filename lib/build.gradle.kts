@@ -13,6 +13,9 @@ plugins {
     `java-library`
 
     id("com.squareup.wire") version "5.4.0"
+
+    // JaCoCo for code coverage
+    jacoco
 }
 
 repositories {
@@ -70,4 +73,26 @@ java {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+
+    // Generate JaCoCo coverage data
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+// Configure JaCoCo code coverage
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+
+    classDirectories.setFrom(files("${layout.buildDirectory.get()}/classes/kotlin/main"))
+    sourceDirectories.setFrom(files("src/main/kotlin"))
+    executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/test.exec"))
 }
