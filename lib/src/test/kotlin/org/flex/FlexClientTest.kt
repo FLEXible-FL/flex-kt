@@ -5,6 +5,8 @@
 package org.flex
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -266,6 +268,65 @@ class FlexClientTest {
 
         client.cancel("Test cancellation")
 
+        assertEquals(ClientState.DISCONNECTED, client.state.value)
+    }
+
+    @Test
+    fun `run should throw if already running`() = runTest {
+        val config = ClientConfig.simple("http://localhost:8080")
+        val client = TestFlexClient(config)
+        
+        // Use a background job to simulate running
+        client.stop() // Transition to STOPPING to simulate not DISCONNECTED
+        
+        kotlin.test.assertFailsWith<IllegalStateException> {
+            client.run()
+        }
+    }
+
+    @Test
+    fun `run should retry on connection failure`() = runTest {
+        val config = ClientConfig.Builder()
+            .baseUrl("http://localhost:1") // Likely to fail quickly
+            .maxRetries(1)
+            .retryDelayMs(1)
+            .build()
+        val listener = TestListener()
+        val client = TestFlexClient(config, listener)
+
+        try {
+            client.run()
+        } catch (e: ConnectionException) {
+            // Expected
+        }
+
+        assertEquals(0, client.trainCallCount)
+        assertTrue(listener.connectionAttempts.isNotEmpty())
+        assertTrue(listener.errors.any { it is ConnectionException })
+        assertEquals(ClientState.DISCONNECTED, client.state.value)
+    }
+
+    @Test
+    fun `stop should be effective during connection`() = runTest {
+        val config = ClientConfig.Builder()
+            .baseUrl("http://localhost:1")
+            .maxRetries(10)
+            .retryDelayMs(100)
+            .build()
+        val client = TestFlexClient(config)
+        
+        val job = launch {
+            try {
+                client.run()
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+        
+        delay(50)
+        client.stop()
+        job.join()
+        
         assertEquals(ClientState.DISCONNECTED, client.state.value)
     }
 }
