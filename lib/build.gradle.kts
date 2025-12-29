@@ -43,13 +43,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
 
@@ -62,6 +62,11 @@ android {
 
 wire {
     sourcePath {
+// Apply a specific Java toolchain to ensure we use Java 21
+kotlin {
+    jvmToolchain(21)
+}
+
         srcDir("src/main/proto")
         include("org/flex/tensor.proto")
         include("org/flex/transport.proto")
