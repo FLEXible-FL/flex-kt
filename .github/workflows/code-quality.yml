@@ -31,7 +31,7 @@ jobs:
         continue-on-error: true
       
       - name: Check for compilation warnings
-        run: ./gradlew compileKotlin --no-daemon -Dorg.gradle.warning.mode=all
+        run: ./gradlew compileDebugKotlin --no-daemon -Dorg.gradle.warning.mode=all
       
       - name: Run dependency check
         run: ./gradlew dependencyCheck --no-daemon
