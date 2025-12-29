@@ -6,21 +6,63 @@
  */
 
 plugins {
-    // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    alias(libs.plugins.kotlin.jvm)
-
-    // Apply the java-library plugin for API and implementation separation.
-    `java-library`
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 
     id("com.squareup.wire") version "5.4.0"
 
     // JaCoCo for code coverage
     jacoco
+
+    `maven-publish`
 }
 
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
+android {
+    namespace = "org.flex"
+    compileSdk = 35
+
+    defaultConfig {
+        minSdk = 21
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+// Apply a specific Java toolchain to ensure we use Java 21
+kotlin {
+    jvmToolchain(21)
 }
 
 wire {
@@ -39,6 +81,7 @@ val coroutinesVersion = "1.7.3"
 dependencies {
     // Kotlin Coroutines - Android compatible
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 
     // Use the Kotlin Test integration.
@@ -53,7 +96,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.8")
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api(libs.commons.math3)
+    api(libs.commons.math)
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation(libs.guava)
@@ -63,40 +106,41 @@ dependencies {
     implementation("com.squareup.wire:wire-grpc-client:5.4.0")
 }
 
-// Apply a specific Java toolchain to ease working on different environments.
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
-
-    // Generate JaCoCo coverage data
-    finalizedBy(tasks.jacocoTestReport)
-}
-
 // Configure JaCoCo code coverage
 jacoco {
-    toolVersion = "0.8.10"
+    toolVersion = "0.8.12"
 }
 
-tasks.jacocoTestReport {
-    dependsOn(tasks.test)
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn(tasks.named("testDebugUnitTest"))
+    dependsOn(tasks.named("testReleaseUnitTest"))
 
     reports {
-        xml.required = true
-        html.required = true
-        csv.required = false
+        xml.required.set(true)
+        html.required.set(true)
     }
 
-    classDirectories.setFrom(files(
-        fileTree("${layout.buildDirectory.get()}/classes/kotlin/main") {
-            exclude("**/*Test*")
+    val debugTree = fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug"))
+    val mainSrc = "src/main/kotlin"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(debugTree)
+    executionData.setFrom(fileTree(layout.buildDirectory.dir("jacoco")).include("*.exec"))
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "org.flex"
+            artifactId = "flexible"
+            version = "0.0.1"
+
+            afterEvaluate {
+                from(components["release"])
+            }
         }
-    ))
-    sourceDirectories.setFrom(files("src/main/kotlin"))
-    executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/test.exec"))
+    }
+    repositories {
+        mavenLocal()
+    }
 }

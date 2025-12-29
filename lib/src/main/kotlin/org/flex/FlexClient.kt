@@ -558,7 +558,7 @@ abstract class FlexClient(
     }
 
     private fun updateStats(update: (SessionStats) -> SessionStats) {
-        _stats.updateAndGet(update)
+        _stats.set(update(_stats.get()))
         listener.onStatsUpdated(_stats.get())
     }
 }
