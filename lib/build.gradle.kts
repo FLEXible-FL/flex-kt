@@ -92,7 +92,11 @@ tasks.jacocoTestReport {
         csv.required = false
     }
 
-    classDirectories.setFrom(files("${layout.buildDirectory.get()}/classes/kotlin/main"))
+    classDirectories.setFrom(files(
+        fileTree("${layout.buildDirectory.get()}/classes/kotlin/main") {
+            exclude("**/*Test*")
+        }
+    ))
     sourceDirectories.setFrom(files("src/main/kotlin"))
     executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/test.exec"))
 }
