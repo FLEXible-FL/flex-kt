@@ -1,6 +1,10 @@
 syntax = "proto3";
+package flexible;
 
-package org.flex.flexible;
+// This defines where the generated Java classes will live
+option java_package = "org.flex.flexible";
+option java_multiple_files = true;
+
 
 import "org/flex/tensor.proto";
 
