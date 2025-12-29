@@ -60,13 +60,13 @@ android {
     }
 }
 
-wire {
-    sourcePath {
 // Apply a specific Java toolchain to ensure we use Java 21
 kotlin {
     jvmToolchain(21)
 }
 
+wire {
+    sourcePath {
         srcDir("src/main/proto")
         include("org/flex/tensor.proto")
         include("org/flex/transport.proto")
@@ -108,7 +108,7 @@ dependencies {
 
 // Configure JaCoCo code coverage
 jacoco {
-    toolVersion = "0.8.10"
+    toolVersion = "0.8.12"
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
