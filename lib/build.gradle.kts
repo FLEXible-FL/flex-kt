@@ -113,18 +113,19 @@ jacoco {
 
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("testDebugUnitTest"))
+    dependsOn(tasks.named("testReleaseUnitTest"))
 
     reports {
         xml.required.set(true)
         html.required.set(true)
     }
 
-    val debugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug")
+    val debugTree = fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug"))
     val mainSrc = "src/main/kotlin"
 
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(debugTree)
-    executionData.setFrom(fileTree(layout.buildDirectory).include("/jacoco/*.exec"))
+    executionData.setFrom(fileTree(layout.buildDirectory.dir("jacoco")).include("*.exec"))
 }
 
 publishing {
