@@ -433,6 +433,10 @@ abstract class FlexClient(
                 message.get_weights_ins != null -> handleGetWeights(sendChannel)
                 message.train_ins != null -> handleTrain(sendChannel)
                 message.send_weights_ins != null -> handleSendWeights(sendChannel, message.send_weights_ins)
+                message.stop_ins != null -> {
+                    // Server requested stop
+                    stopRequested.value = true
+                }
             }
         }
     }
